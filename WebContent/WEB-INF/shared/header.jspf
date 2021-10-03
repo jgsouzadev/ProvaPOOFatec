@@ -1,0 +1,90 @@
+<%@page import="java.util.stream.Collectors"%>
+<%@page import="java.util.Set"%>
+<%@page import="java.util.HashSet"%>
+<%@page import="java.util.Random"%>
+<%@page import="java.util.Arrays"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.util.Objects"%>
+<header>
+	<title>João Guilherme</title>
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</header>
+
+
+<%
+final String[] keyListSession = { "nomeSessao" };
+final String[] keyListContext = { "usuarios_logados" };
+
+ServletContext context = request.getServletContext();
+
+List<String> usuariosAtivos = (List) context.getAttribute(keyListContext[0]);
+
+Boolean usuarioLogado = !Objects.isNull(session.getAttribute(keyListSession[0]));
+String nomeUsuario = request.getParameter("username");
+String nomeUsuarioLogado = String.valueOf(session.getAttribute(keyListSession[0]));
+
+
+
+
+if(!Objects.isNull(request.getParameter("login"))) {
+		
+	session.setAttribute(keyListSession[0], nomeUsuario);
+	
+	if(Objects.isNull(usuariosAtivos)) {
+		context.setAttribute(keyListContext[0], new ArrayList<>(Arrays.asList(nomeUsuario)));
+	} else {
+		usuariosAtivos.add(nomeUsuario);
+		context.setAttribute(keyListContext[0], usuariosAtivos);
+	}
+	
+	
+	List<Integer> numerosAleatorios = new ArrayList<>();
+	Random random = new Random();
+	
+	Set<Integer> numerosFinais = new HashSet<>();
+	for(int i = 0; i < 6; i++ ) {
+		numerosFinais.add(random.nextInt(59));
+	}
+	
+	session.setAttribute("valores", numerosFinais.stream().collect(Collectors.toList()));
+	
+	response.sendRedirect(request.getRequestURI());
+	
+} else if(!Objects.isNull(request.getParameter("sair"))) {
+
+	usuariosAtivos.remove(usuariosAtivos.indexOf(nomeUsuarioLogado));
+	session.removeAttribute(keyListSession[0]);
+	response.sendRedirect(request.getRequestURI());
+}
+
+
+
+if(usuarioLogado) {
+%>
+
+<nav>
+	<div class="nav-wrapper">
+		<a href="./" class="brand-logo">
+			Seja bem vindo, <%= nomeUsuarioLogado %>
+		</a>
+		<form>
+			<ul id="nav-mobile" class="right hide-on-med-and-down">
+				<li><a href="./JoaoGuilhermeMegasena.jsp">Mega sena</a></li>
+				<li><a href="./JoaoGuilherme.jsp">Sobre mim</a></li>
+				<button class="btn red darken-1" type="submit" name="sair">Sair</button>
+			</ul>
+		</form>
+	</div>
+</nav>
+<% } else {%>
+<div class="row">
+	<form method="GET" action="#">
+		<div class="input-field col s6">
+			Nome:<input id="nome" type="text" class="validate" name="username"/>
+		<button class="btn waves-effect waves-light" type="submit" name="login">Logar</button>
+		</div>
+	</form>
+</div>
+<% } %>
